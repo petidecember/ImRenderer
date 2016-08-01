@@ -62,7 +62,7 @@ private:
 	};
 
 public:
-	static void init(int width, int height, glm::mat4 projection);
+	static void init(int width, int height, const glm::mat4& projection);
 private:
 	static void initShaders();
 	static void initShapes();
@@ -89,20 +89,20 @@ public:
 	static void triangle(float width, float height);
 	static void quad();
 
-	static void setCamera(glm::vec3 pos, glm::vec3 dir);
-	static void setCamera(glm::vec3 pos, glm::vec3 dir, glm::vec3 up = glm::vec3(0.0f, 1.0f, 0.0f));
+	static void setCamera(const glm::vec3& pos, const glm::vec3& dir);
+	static void setCamera(const glm::vec3& pos, const glm::vec3& dir, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f));
 
 	static void translate(float x, float y, float z);
-	static void rotate(glm::vec3 axis, float radians);
+	static void rotate(const glm::vec3& axis, float radians);
 	static void scale(float x, float y, float z);
 
 	static void cleanUp();
 
 	static void pointSize(GLfloat size);
 
-	static glm::mat4 getModelMatrix() { return modelMatrix; }
-	static glm::mat4 getViewMatrix() { return viewMatrix; }
-	static glm::mat4 getProjectionMatrix() { return projectionMatrix; }
+	static glm::mat4& getModelMatrix() { return modelMatrix; }
+	static glm::mat4& getViewMatrix() { return viewMatrix; }
+	static glm::mat4& getProjectionMatrix() { return projectionMatrix; }
 	static int getWidth() { return width; }
 	static int getHeight() { return height; }
 	static float getAspect() { return aspect; }

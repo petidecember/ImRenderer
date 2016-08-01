@@ -23,7 +23,7 @@ float lerp(float v0, float v1, float t) {
 	return (1 - t)*v0 + t*v1;
 }
 
-glm::vec2 ScreenToWorld(glm::vec2 point, int width, int height, glm::vec3 camera, glm::mat4 projection, glm::mat4 view)
+glm::vec2& ScreenToWorld(const glm::vec2& point, int width, int height, const glm::vec3& camera, const glm::mat4& projection, const glm::mat4& view)
 {
 	// normalize mouse position from window pixel space to between -1, 1
 	GLfloat normMouse_x = (2.0f * point.x) / width - 1.0f;

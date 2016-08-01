@@ -25,7 +25,7 @@ glm::mat4 ImRenderer::modelMatrix = glm::mat4();
 glm::mat4 ImRenderer::viewMatrix = glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 glm::mat4 ImRenderer::projectionMatrix = glm::mat4();
 
-void ImRenderer::init(int _width, int _height, glm::mat4 projection)
+void ImRenderer::init(int _width, int _height, const glm::mat4& projection)
 {
 	width = _width;
 	height = _height;
@@ -366,12 +366,12 @@ void ImRenderer::quad()
 }
 
 //TODO: take in a camera class later
-void ImRenderer::setCamera(glm::vec3 pos, glm::vec3 dir)
+void ImRenderer::setCamera(const glm::vec3& pos, const glm::vec3& dir)
 {
 	viewMatrix = glm::lookAt(pos, pos + dir, glm::vec3(0.0f, 1.0f, 0.0f));
 }
 
-void ImRenderer::setCamera(glm::vec3 pos, glm::vec3 dir, glm::vec3 up)
+void ImRenderer::setCamera(const glm::vec3& pos, const glm::vec3& dir, const glm::vec3& up)
 {
 	viewMatrix = glm::lookAt(pos, pos + dir, up);
 }
@@ -381,7 +381,7 @@ void ImRenderer::translate(float x, float y, float z)
 	modelMatrix = glm::translate(modelMatrix, glm::vec3(x, y, z));
 }
 
-void ImRenderer::rotate(glm::vec3 axis, float radians)
+void ImRenderer::rotate(const glm::vec3& axis, float radians)
 {
 	modelMatrix = glm::rotate(modelMatrix, radians, axis);
 }
