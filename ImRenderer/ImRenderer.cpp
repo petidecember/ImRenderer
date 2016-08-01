@@ -1,40 +1,39 @@
 #include "ImRenderer.h"
 
-GLint ImRenderer::width = 0;
-GLint ImRenderer::height = 0;
-GLfloat ImRenderer::aspect = 0.0f;
-
-GLuint ImRenderer::program = 0;
-GLuint ImRenderer::currentProgram = 0;
-
-GLuint ImRenderer::pointVAO = 0;
-GLuint ImRenderer::pointVBO = 0;
-GLuint ImRenderer::rectVAO = 0;
-GLuint ImRenderer::rectVBO = 0;
-GLuint ImRenderer::triangleVAO = 0;
-GLuint ImRenderer::triangleVBO = 0;
-
-glm::vec3 ImRenderer::color = glm::vec3(255);
-
-std::vector<GLuint> ImRenderer::accessVAO = std::vector<GLuint>();
-std::vector<GLuint> ImRenderer::accessVBO = std::vector<GLuint>();
-std::vector<GLuint> ImRenderer::accessProgram = std::vector<GLuint>();
-std::vector<std::pair<GLuint, ImRenderer::Uniform>> ImRenderer::accessUniforms = std::vector<std::pair<GLuint, Uniform>>();
-
-glm::mat4 ImRenderer::modelMatrix = glm::mat4();
-glm::mat4 ImRenderer::viewMatrix = glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-glm::mat4 ImRenderer::projectionMatrix = glm::mat4();
-
-void ImRenderer::init(int _width, int _height, const glm::mat4& projection)
+ImRenderer::ImRenderer(int _width, int _height, const glm::mat4& projection)
 {
 	width = _width;
 	height = _height;
 	aspect = (float)width / (float)height;
-
 	projectionMatrix = projection;
-	
+
+	defaultProgram = 0;
+	currentProgram = 0;
+
+	pointVAO = 0;
+	pointVBO = 0;
+	rectVAO = 0;
+	rectVBO = 0;
+	triangleVAO = 0;
+	triangleVBO = 0;
+
+	color = glm::vec3(255);
+
+	accessVAO = std::vector<GLuint>();
+	accessVBO = std::vector<GLuint>();
+	accessProgram = std::vector<GLuint>();
+	accessUniforms = std::vector<std::pair<GLuint, Uniform>>();
+
+	modelMatrix = glm::mat4();
+	viewMatrix = glm::lookAt(glm::vec3(0.0f), glm::vec3(0.0f, 0.0f, 1.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+
 	initDefShaders();
 	initDefShapes();
+}
+
+ImRenderer::~ImRenderer()
+{
+	cleanUp();
 }
 
 void ImRenderer::initDefShaders()
@@ -86,22 +85,22 @@ void ImRenderer::initDefShaders()
 	};
 
 
-	program = glCreateProgram();
-	glAttachShader(program, vertex);
-	glAttachShader(program, fragment);
-	glLinkProgram(program);
+	defaultProgram = glCreateProgram();
+	glAttachShader(defaultProgram, vertex);
+	glAttachShader(defaultProgram, fragment);
+	glLinkProgram(defaultProgram);
 
-	glGetProgramiv(program, GL_LINK_STATUS, &success);
+	glGetProgramiv(defaultProgram, GL_LINK_STATUS, &success);
 	if (!success)
 	{
-		glGetProgramInfoLog(program, 512, NULL, infoLog);
+		glGetProgramInfoLog(defaultProgram, 512, NULL, infoLog);
 		std::cout << "ERROR: Shader Program LINKING_FAILED\n" << infoLog << std::endl;
 	}
 
 	glDeleteShader(vertex);
 	glDeleteShader(fragment);
 
-	currentProgram = program;
+	currentProgram = defaultProgram;
 }
 
 void ImRenderer::initDefShapes()
@@ -272,7 +271,7 @@ void ImRenderer::drawShape(int id, int count, DrawType type)
 
 	modelMatrix = glm::mat4();
 	color = glm::vec3(1);
-	currentProgram = program;
+	currentProgram = defaultProgram;
 }
 
 void ImRenderer::setColor(float r, float g, float b)
@@ -298,9 +297,9 @@ void ImRenderer::drawPrimitive(Primitive primitive)
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "projection"), 1, false, glm::value_ptr(projectionMatrix));
 	glUniform3f(glGetUniformLocation(currentProgram, "c"), color.r, color.g, color.b);
 
-	if (currentProgram != program)
+	if (currentProgram != defaultProgram)
 	{
-		std::vector<std::pair<GLuint, Uniform>>::iterator it = std::find_if(accessUniforms.begin(), accessUniforms.end(), [](const std::pair<GLuint, Uniform>& pair) -> bool { return pair.first == currentProgram; });
+		std::vector<std::pair<GLuint, Uniform>>::iterator it = std::find_if(accessUniforms.begin(), accessUniforms.end(), [&](const std::pair<GLuint, Uniform>& pair) -> bool { return pair.first == currentProgram; });
 		Uniform* uniform = &it->second;
 
 		switch (uniform->count)
@@ -346,7 +345,7 @@ void ImRenderer::drawPrimitive(Primitive primitive)
 
 	modelMatrix = glm::mat4();
 	color = glm::vec3(1);
-	currentProgram = program;
+	currentProgram = defaultProgram;
 }
 
 void ImRenderer::point()
@@ -398,7 +397,7 @@ void ImRenderer::pointSize(GLfloat size)
 
 void ImRenderer::cleanUp()
 {
-	glDeleteProgram(program);
+	glDeleteProgram(defaultProgram);
 	if (accessProgram.size() != 0) { glDeleteProgramsARB(accessProgram.size(), &accessProgram[0]); }
 	glDeleteBuffers(1, &pointVBO);
 	glDeleteBuffers(1, &rectVBO);

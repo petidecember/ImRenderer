@@ -22,37 +22,37 @@ public:
 	};
 private:
 	//Window Related Variables
-	static GLint width, height;
-	static GLfloat aspect;
+	GLint width, height;
+	GLfloat aspect;
 	//END WINDOW
 
 	//Shader
-	static GLuint program;
-	static GLuint currentProgram;
+	GLuint defaultProgram;
+	GLuint currentProgram;
 	//END SHADER
 
 	//Shape related variables, hard coded
-	static GLuint pointVAO;
-	static GLuint pointVBO;
-	static GLuint rectVAO;
-	static GLuint rectVBO;
-	static GLuint triangleVAO;
-	static GLuint triangleVBO;
+	GLuint pointVAO;
+	GLuint pointVBO;
+	GLuint rectVAO;
+	GLuint rectVBO;
+	GLuint triangleVAO;
+	GLuint triangleVBO;
 
-	static glm::vec3 color;
+	glm::vec3 color;
 	//END SHAPE
 
 	//Shader, VAO & VBO ID access for custom shapes
-	static std::vector<GLuint> accessVAO;
-	static std::vector<GLuint> accessVBO;
-	static std::vector<GLuint> accessProgram;
-	static std::vector<std::pair<GLuint, Uniform>> accessUniforms;
+	std::vector<GLuint> accessVAO;
+	std::vector<GLuint> accessVBO;
+	std::vector<GLuint> accessProgram;
+	std::vector<std::pair<GLuint, Uniform>> accessUniforms;
 	//END CUSTOM SHAPE
 
 	//Standard matrix variables
-	static glm::mat4 modelMatrix;
-	static glm::mat4 viewMatrix;
-	static glm::mat4 projectionMatrix;
+	glm::mat4 modelMatrix;
+	glm::mat4 viewMatrix;
+	glm::mat4 projectionMatrix;
 	//END MVP
 
 	enum Primitive {
@@ -62,54 +62,55 @@ private:
 	};
 
 public:
-	static void init(int width, int height, const glm::mat4& projection);
+	ImRenderer(int width, int height, const glm::mat4& projection);
+	~ImRenderer();
 private:
-	static void initDefShaders();
-	static void initDefShapes();
+	void initDefShaders();
+	void initDefShapes();
 
-	static void drawPrimitive(Primitive primitive);
+	void drawPrimitive(Primitive primitive);
 public:
 
-	static void clear(GLbitfield bitfield);
+	void clear(GLbitfield bitfield);
 	
 	/*NOTE: This function doesn't take in a byte value*/
-	static void background(int color);
-	static void background(int r, int g, int b, int a);
-	static void background(int r, int g, int b);
+	void background(int color);
+	void background(int r, int g, int b, int a);
+	void background(int r, int g, int b);
 
-	static int addShader(const char* fSource);
-	static int addShape(const float* vertices);
-	static void drawShape(int id, int count, DrawType type);
+	int addShader(const char* fSource);
+	int addShape(const float* vertices);
+	void drawShape(int id, int count, DrawType type);
 
-	static void setColor(float r, float g, float b);
-	static void setShader(unsigned int id);
-	static void setUniform(unsigned int id, Uniform uniform);
-	static void restoreShader() { currentProgram = program; }
+	void setColor(float r, float g, float b);
+	void setShader(unsigned int id);
+	void setUniform(unsigned int id, Uniform uniform);
+	void restoreShader() { currentProgram = defaultProgram; }
 
 	//Primitive Draw Functions
-	static void point();
-	static void pointSize(GLfloat size);
+	void point();
+	void pointSize(GLfloat size);
 
-	static void triangle(float width, float height);
+	void triangle(float width, float height);
 
-	static void quad();
+	void quad();
 	//END PRIMITIVE DRAW
 
-	static void setCamera(const glm::vec3& pos, const glm::vec3& dir);
-	static void setCamera(const glm::vec3& pos, const glm::vec3& dir, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f));
+	void setCamera(const glm::vec3& pos, const glm::vec3& dir);
+	void setCamera(const glm::vec3& pos, const glm::vec3& dir, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f));
 
-	static void translate(float x, float y, float z);
-	static void rotate(const glm::vec3& axis, float radians);
-	static void scale(float x, float y, float z);
+	void translate(float x, float y, float z);
+	void rotate(const glm::vec3& axis, float radians);
+	void scale(float x, float y, float z);
 
-	static void cleanUp();
+	void cleanUp();
 
 
 	//Utility Functions
-	static glm::mat4& getModelMatrix() { return modelMatrix; }
-	static glm::mat4& getViewMatrix() { return viewMatrix; }
-	static glm::mat4& getProjectionMatrix() { return projectionMatrix; }
-	static int getWidth() { return width; }
-	static int getHeight() { return height; }
-	static float getAspect() { return aspect; }
+	glm::mat4 getModelMatrix() { return modelMatrix; }
+	glm::mat4 getViewMatrix() { return viewMatrix; }
+	glm::mat4 getProjectionMatrix() { return projectionMatrix; }
+	int getWidth() { return width; }
+	int getHeight() { return height; }
+	float getAspect() { return aspect; }
 };
