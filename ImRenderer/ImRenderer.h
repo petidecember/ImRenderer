@@ -64,8 +64,8 @@ private:
 public:
 	static void init(int width, int height, const glm::mat4& projection);
 private:
-	static void initShaders();
-	static void initShapes();
+	static void initDefShaders();
+	static void initDefShapes();
 
 	static void drawPrimitive(Primitive primitive);
 public:
@@ -77,17 +77,23 @@ public:
 	static void background(int r, int g, int b, int a);
 	static void background(int r, int g, int b);
 
-	static int initShader(const char* fSource);
-	static int initShape(const float* vertices);
+	static int addShader(const char* fSource);
+	static int addShape(const float* vertices);
 	static void drawShape(int id, int count, DrawType type);
 
 	static void setColor(float r, float g, float b);
 	static void setShader(unsigned int id);
 	static void setUniform(unsigned int id, Uniform uniform);
 	static void restoreShader() { currentProgram = program; }
+
+	//Primitive Draw Functions
 	static void point();
+	static void pointSize(GLfloat size);
+
 	static void triangle(float width, float height);
+
 	static void quad();
+	//END PRIMITIVE DRAW
 
 	static void setCamera(const glm::vec3& pos, const glm::vec3& dir);
 	static void setCamera(const glm::vec3& pos, const glm::vec3& dir, const glm::vec3& up = glm::vec3(0.0f, 1.0f, 0.0f));
@@ -98,8 +104,8 @@ public:
 
 	static void cleanUp();
 
-	static void pointSize(GLfloat size);
 
+	//Utility Functions
 	static glm::mat4& getModelMatrix() { return modelMatrix; }
 	static glm::mat4& getViewMatrix() { return viewMatrix; }
 	static glm::mat4& getProjectionMatrix() { return projectionMatrix; }

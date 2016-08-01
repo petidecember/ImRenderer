@@ -3,7 +3,6 @@
 #include <GL\glew.h>
 #include <GLFW\glfw3.h>
 #include <iostream>
-#include <random>
 #include "ImRenderer.h"
 
 static bool shouldClose = false;
@@ -69,7 +68,7 @@ int main()
 		"color = vec4(p, p, p, 1.0);\n"
 		"}\n\0";
 
-	int id = IR::initShader(fSource);
+	int id = IR::addShader(fSource);
 	GLfloat* uniform[2] = { &mouseX, &mouseY };
 	IR::Uniform _uniform = {"position", 2, uniform };
 	IR::setUniform(id, _uniform);

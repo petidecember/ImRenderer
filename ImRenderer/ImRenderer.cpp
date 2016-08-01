@@ -33,11 +33,11 @@ void ImRenderer::init(int _width, int _height, const glm::mat4& projection)
 
 	projectionMatrix = projection;
 	
-	initShaders();
-	initShapes();
+	initDefShaders();
+	initDefShapes();
 }
 
-void ImRenderer::initShaders()
+void ImRenderer::initDefShaders()
 {
 	GLuint vertex = 0;
 	GLuint fragment = 0;
@@ -104,7 +104,7 @@ void ImRenderer::initShaders()
 	currentProgram = program;
 }
 
-void ImRenderer::initShapes()
+void ImRenderer::initDefShapes()
 {
 	float PointVertices[3] = { 0.0f, 0.0f, 0.0f };
 
@@ -173,7 +173,7 @@ void ImRenderer::background(int color)
 	glClearColor(c, c, c, 1.0f);
 }
 
-int ImRenderer::initShader(const char* fSource)
+int ImRenderer::addShader(const char* fSource)
 {
 	GLuint vertex = 0;
 	GLuint fragment = 0;
@@ -236,7 +236,7 @@ int ImRenderer::initShader(const char* fSource)
 	return program;
 }
 
-int ImRenderer::initShape(const float* vertices)
+int ImRenderer::addShape(const float* vertices)
 {
 	unsigned int id;
 	glGenVertexArrays(1, &id);
