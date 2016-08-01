@@ -298,29 +298,28 @@ void ImRenderer::drawPrimitive(Primitive primitive)
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "projection"), 1, false, glm::value_ptr(projectionMatrix));
 	glUniform3f(glGetUniformLocation(currentProgram, "c"), color.r, color.g, color.b);
 
-	for (int i = 0; i < accessUniforms.size(); i++)
+	if (currentProgram != program)
 	{
-		if (accessUniforms[i].first == currentProgram) 
+		std::vector<std::pair<GLuint, Uniform>>::iterator it = std::find_if(accessUniforms.begin(), accessUniforms.end(), [](const std::pair<GLuint, Uniform>& pair) -> bool { return pair.first == currentProgram; });
+		Uniform* uniform = &it->second;
+
+		switch (uniform->count)
 		{
-			Uniform iterator = accessUniforms[i].second;
-			switch (iterator.count)
-			{
-			case 1:
-				glUniform1fv(glGetUniformLocation(currentProgram, accessUniforms[i].second.name), 1, iterator.variable[0]);
-				break;
-			case 2:
-				glUniform2f(glGetUniformLocation(currentProgram, accessUniforms[i].second.name), *iterator.variable[0], *iterator.variable[1]);
-				break;
-			case 3:
-				glUniform3fv(glGetUniformLocation(currentProgram, accessUniforms[i].second.name), 1, iterator.variable[0]);
-				break;
-			case 4:
-				glUniform4fv(glGetUniformLocation(currentProgram, accessUniforms[i].second.name), 1, iterator.variable[0]);
-				break;
-			case 16:
-				glUniformMatrix4fv(glGetUniformLocation(currentProgram, accessUniforms[i].second.name), 1, false, iterator.variable[0]);
-				break;
-			}
+		case 1:
+			glUniform1fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 2:
+			glUniform2fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 3:
+			glUniform3fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 4:
+			glUniform4fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 16:
+			glUniformMatrix4fv(glGetUniformLocation(currentProgram, uniform->name), 1, false, uniform->variable[0]);
+			break;
 		}
 	}
 
