@@ -243,3 +243,10 @@ ModelManifest.xml
 
 # FAKE - F# Make
 .fake/
+
+#Code::Blocks generated files and folders
+*.layout
+*.depend
+*.cbp
+bin/
+obj/

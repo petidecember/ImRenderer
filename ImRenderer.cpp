@@ -14,6 +14,7 @@ ImRenderer::ImRenderer(int _width, int _height, const glm::mat4& projection)
 	pointVBO = 0;
 	rectVAO = 0;
 	rectVBO = 0;
+	rectEBO = 0;
 	triangleVAO = 0;
 	triangleVBO = 0;
 
@@ -21,6 +22,7 @@ ImRenderer::ImRenderer(int _width, int _height, const glm::mat4& projection)
 
 	accessVAO = std::vector<GLuint>();
 	accessVBO = std::vector<GLuint>();
+	accessEBO = std::vector<GLuint>();
 	accessProgram = std::vector<GLuint>();
 	accessUniforms = std::vector<std::pair<GLuint, Uniform>>();
 
@@ -114,31 +116,41 @@ void ImRenderer::initDefShapes()
 	glBufferData(GL_ARRAY_BUFFER, sizeof(PointVertices), PointVertices, GL_STATIC_DRAW);
 	glBindVertexArray(0);
 
-	float RectVertices[18] = {
+	float RectVertices[12] =
+	{
 		// First triangle
-		0.5f,  0.5f, 0.0f,  // Top Right
-		0.5f, -0.5f, 0.0f,  // Bottom Right
-		-0.5f,  0.5f, 0.0f,  // Top Left 
-							 // Second triangle
-							 0.5f, -0.5f, 0.0f,  // Bottom Right
-							 -0.5f, -0.5f, 0.0f,  // Bottom Left
-							 -0.5f,  0.5f, 0.0f   // Top Left
+		-0.5f, -0.5f, 0.0f,  // Bottom Left (A - 0)
+		-0.5f,  0.5f, 0.0f,  // Top Left    (B - 1)
+		0.5f,  0.5f, 0.0f,  // Top Right    (C - 2)
+		0.5f, -0.5f, 0.0f,  // Bottom Right (D - 3)
+	};
+
+	//0 - 1 - 2 - 2 - 3 - 0
+	//A - B - C - C - D - A
+	unsigned int RectTriangles[6] =
+	{
+		0, 1, 2, 2, 3, 0
 	};
 
 	glGenVertexArrays(1, &rectVAO);
 	glBindVertexArray(rectVAO);
-	glGenBuffers(1, &rectVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, rectVBO);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(RectVertices), RectVertices, GL_STATIC_DRAW);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
+		glGenBuffers(1, &rectVBO);
+		glBindBuffer(GL_ARRAY_BUFFER, rectVBO);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(RectVertices), RectVertices, GL_STATIC_DRAW);
+
+		glGenBuffers(1, &rectEBO);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, rectEBO);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(RectTriangles), RectTriangles, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 	glBindVertexArray(0);
 
 	float TriangleVertices[9] = {
 		// First triangle
 		0.5f, -0.5f, 0.0f,  // Bottom Left
 		-0.5f, -0.5f, 0.0f,  // Bottom Right
-		0.0f,  0.5f, 0.0f,  // Top 
+		0.0f,  0.5f, 0.0f,  // Top
 	};
 
 	glGenVertexArrays(1, &triangleVAO);
@@ -235,7 +247,7 @@ int ImRenderer::addShader(const char* fSource)
 	return program;
 }
 
-int ImRenderer::addShape(const float* vertices)
+int ImRenderer::addShape(const float* vertices, const unsigned int* indices, size_t verticesSize, size_t indicesSize)
 {
 	unsigned int id;
 	glGenVertexArrays(1, &id);
@@ -245,11 +257,19 @@ int ImRenderer::addShape(const float* vertices)
 	glGenBuffers(1, &vbo);
 	accessVBO.push_back(vbo);
 
+	unsigned int ebo;
+	glGenBuffers(1, &ebo);
+	accessEBO.push_back(ebo);
+
 	glBindVertexArray(id);
-	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo);
+		glBufferData(GL_ARRAY_BUFFER, verticesSize * sizeof(float), vertices, GL_STATIC_DRAW);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, indicesSize * sizeof(unsigned int), indices, GL_STATIC_DRAW);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(GLfloat), 0);
 	glBindVertexArray(0);
 
 	return id;
@@ -265,7 +285,76 @@ void ImRenderer::drawShape(int id, int count, DrawType type)
 	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "projection"), 1, false, glm::value_ptr(projectionMatrix));
 	glUniform3f(glGetUniformLocation(currentProgram, "c"), color.r, color.g, color.b);
 
+	if (currentProgram != defaultProgram)
+	{
+		std::vector<std::pair<GLuint, Uniform>>::iterator it = std::find_if(accessUniforms.begin(), accessUniforms.end(), [&](const std::pair<GLuint, Uniform>& pair) -> bool { return pair.first == currentProgram; });
+		Uniform* uniform = &it->second;
+
+		switch (uniform->count)
+		{
+		case 1:
+			glUniform1fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 2:
+			glUniform2fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 3:
+			glUniform3fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 4:
+			glUniform4fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 16:
+			glUniformMatrix4fv(glGetUniformLocation(currentProgram, uniform->name), 1, false, uniform->variable[0]);
+			break;
+		}
+	}
+
 	glDrawArrays(type, 0, count);
+
+	glBindVertexArray(0);
+
+	modelMatrix = glm::mat4();
+	color = glm::vec3(1);
+	currentProgram = defaultProgram;
+}
+
+void ImRenderer::drawShapeElements(int id, int count, DrawType type)
+{
+	glBindVertexArray(id);
+
+	glUseProgram(currentProgram);
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "model"), 1, false, glm::value_ptr(modelMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "view"), 1, false, glm::value_ptr(viewMatrix));
+	glUniformMatrix4fv(glGetUniformLocation(currentProgram, "projection"), 1, false, glm::value_ptr(projectionMatrix));
+	glUniform3f(glGetUniformLocation(currentProgram, "c"), color.r, color.g, color.b);
+
+	if (currentProgram != defaultProgram)
+	{
+		std::vector<std::pair<GLuint, Uniform>>::iterator it = std::find_if(accessUniforms.begin(), accessUniforms.end(), [&](const std::pair<GLuint, Uniform>& pair) -> bool { return pair.first == currentProgram; });
+		Uniform* uniform = &it->second;
+
+		switch (uniform->count)
+		{
+		case 1:
+			glUniform1fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 2:
+			glUniform2fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 3:
+			glUniform3fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 4:
+			glUniform4fv(glGetUniformLocation(currentProgram, uniform->name), 1, uniform->variable[0]);
+			break;
+		case 16:
+			glUniformMatrix4fv(glGetUniformLocation(currentProgram, uniform->name), 1, false, uniform->variable[0]);
+			break;
+		}
+	}
+
+	glDrawElements(type, count, GL_UNSIGNED_INT, 0);
 
 	glBindVertexArray(0);
 
@@ -335,10 +424,10 @@ void ImRenderer::drawPrimitive(Primitive primitive)
 		glDrawArrays(GL_TRIANGLES, 0, 3);
 		glBindVertexArray(0);
 		break;
-	
+
 	case QUAD:
 		glBindVertexArray(rectVAO);
-		glDrawArrays(GL_TRIANGLES, 0, 6);
+		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 		glBindVertexArray(0);
 		break;
 	}
@@ -398,11 +487,13 @@ void ImRenderer::pointSize(GLfloat size)
 void ImRenderer::cleanUp()
 {
 	glDeleteProgram(defaultProgram);
-	if (accessProgram.size() != 0) { glDeleteProgramsARB(accessProgram.size(), &accessProgram[0]); }
+	if (accessProgram.size() != 0) { for(int i = 0; i < accessProgram.size(); i++) { glDeleteProgram(accessProgram[0]); } }
 	glDeleteBuffers(1, &pointVBO);
 	glDeleteBuffers(1, &rectVBO);
+	glDeleteBuffers(1, &rectEBO);
 	glDeleteBuffers(1, &triangleVBO);
 	if (accessVBO.size() != 0) { glDeleteBuffers(accessVBO.size(), &accessVBO[0]); }
+	if (accessEBO.size() != 0) { glDeleteBuffers(accessEBO.size(), &accessEBO[0]); }
 	glDeleteVertexArrays(1, &pointVAO);
 	glDeleteVertexArrays(1, &rectVAO);
 	glDeleteVertexArrays(1, &triangleVAO);

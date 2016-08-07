@@ -1,11 +1,11 @@
 #pragma once
-#include <GL\glew.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <iostream>
 #include <vector>
 #include <algorithm>
+#include "glad/glad.h"
 
 class ImRenderer {
 public:
@@ -36,6 +36,7 @@ private:
 	GLuint pointVBO;
 	GLuint rectVAO;
 	GLuint rectVBO;
+	GLuint rectEBO;
 	GLuint triangleVAO;
 	GLuint triangleVBO;
 
@@ -45,6 +46,7 @@ private:
 	//Shader, VAO & VBO ID access for custom shapes
 	std::vector<GLuint> accessVAO;
 	std::vector<GLuint> accessVBO;
+	std::vector<GLuint> accessEBO;
 	std::vector<GLuint> accessProgram;
 	std::vector<std::pair<GLuint, Uniform>> accessUniforms;
 	//END CUSTOM SHAPE
@@ -72,15 +74,16 @@ private:
 public:
 
 	void clear(GLbitfield bitfield);
-	
+
 	/*NOTE: This function doesn't take in a byte value*/
 	void background(int color);
 	void background(int r, int g, int b, int a);
 	void background(int r, int g, int b);
 
 	int addShader(const char* fSource);
-	int addShape(const float* vertices);
+	int addShape(const float* vertices, const unsigned int* indices, size_t verticesSize, size_t indicesSize);
 	void drawShape(int id, int count, DrawType type);
+	void drawShapeElements(int id, int count, DrawType type);
 
 	void setColor(float r, float g, float b);
 	void setShader(unsigned int id);
